@@ -1,0 +1,13 @@
+This will serve as the main entry point for the REST api to be used
+by the frontend.
+
+The folders contain a structure of the following:
+|--controllers
+| |- filename.controller.ts
+|
+|--routes
+| |- filename.ts
+|
+|- README
+
+This allows us to seperate functional logic and routing logic
