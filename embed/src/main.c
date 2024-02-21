@@ -7,9 +7,11 @@
 #include "esp_event.h"
 #include "esp_log.h"
 #include "nvs_flash.h"
+#include "driver/gpio.h"
 
 #include "lwip/err.h"
 #include "lwip/sys.h"
+#include "hal/gpio_types.h"
 
 //macros used because values are constants and it is an easier way to organize all the valuse in one spot
 //can use config file for further orginization
@@ -152,6 +154,8 @@ void wifi_init_sta(void)
     }
 }
 
+
+
 void app_main(void)
 {
     //Initialize NVS
@@ -164,4 +168,20 @@ void app_main(void)
 
     ESP_LOGI(TAG, "ESP_WIFI_MODE_STA");
     wifi_init_sta();
+
+    gpio_config_t output_config = {
+        .pin_bit_mask = (1ULL << GPIO_NUM_2),
+        .mode = GPIO_MODE_OUTPUT,
+        .pull_up_en = GPIO_PULLUP_DISABLE,
+        .pull_down_en = GPIO_PULLDOWN_DISABLE,
+        .intr_type = GPIO_INTR_DISABLE
+    };
+    gpio_config(&output_config);
+
+    while (1) {
+        gpio_set_level(GPIO_NUM_2, 1); // Set pin high
+        vTaskDelay(1000 / portTICK_PERIOD_MS); // Delay 1 second
+        gpio_set_level(GPIO_NUM_2, 0); // Set pin low
+        vTaskDelay(1000 / portTICK_PERIOD_MS); // Delay 1 second
+    }
 }
