@@ -1,0 +1,156 @@
+// HTTP GET /sensors
+[{ 
+    "sensor": {
+        "id": 0,
+        "product_number": "XYZZY-123",
+        "nickname": "XYZZY-moisture",
+        "type": "moisture",
+        "value-metadata": {
+            "return-type": "float",
+            "min-value": 0.0,
+            "max-value": 100.0
+        },
+        "value": 42.73
+    }
+},
+{ 
+    "sensor": {
+        "id": 1,
+        "product_number": "ESP-WROOM-32",
+        "nickname": "Device clock",
+        "type": "clock",
+        "value-metadata": {
+            "return-type": "int",
+            "min-value": 0,
+            "max-value": 2147483647
+        },
+        "value": 1708677401
+    }
+}]
+
+// HTTP GET /sensors/{id}
+// HTTP GET /sensors/0
+{ 
+    "sensor": {
+        "id": 0,
+        "product_number": "XYZZY-123",
+        "nickname": "XYZZY-moisture",
+        "type": "moisture",
+        "value-metadata": {
+            "return-type": "float",
+            "min-value": 0.0,
+            "max-value": 100.0
+        },
+        "value": 42.73
+    }
+}
+
+// HTTP GET /sensors/0/brief
+{
+    "sensor": {
+        "id": 0,
+        "value": 42.73
+    }
+}
+
+// Not really certain that it'd make sense to send the clock value. I could see some scenarios where it's convenient for scripting?
+// HTTP GET /sensors/1
+{ 
+    "sensor": {
+        "id": 1,
+        "product_number": "ESP-WROOM-32",
+        "nickname": "Device clock",
+        "type": "clock",
+        "value-metadata": {
+            "return-type": "int",
+            "min-value": 0,
+            "max-value": 2147483647
+        },
+        "value": 1708677401
+    }
+}
+
+//
+// actuators
+// 
+
+// HTTP GET /actuators
+[{ 
+    "actuator": {
+        "id": 0,
+        "product_number": "FOOBAR-Ultra",
+        "nickname": "Philodendron water",
+        "type": "waterSupply",
+        "state-metadata": {
+            "state-type": "bool"
+        },
+        "state": false
+    }
+},
+{ 
+    "actuator": {
+        "id": 1,
+        "product_number": "POWERSTAR_LED",
+        "nickname": "Philodendron_lamp",
+        "type": "lamp",
+        "state-metadata": {
+            "state-type": "float", // imagine it's continuous
+            "min-value": 0.0,
+            "max-value": 100.0
+        },
+        "state": 50.0
+    }
+}]
+
+// HTTP GET /actuators/0
+{ 
+    "actuator": {
+        "id": 0,
+        "product_number": "FOOBAR-Ultra",
+        "nickname": "Philodendron water",
+        "type": "waterSupply",
+        "state-metadata": {
+            "state-type": "bool"
+        },
+        "state": false
+    }
+} 
+
+// HTTP GET /actuators/1
+{ 
+    "actuator": {
+        "id": 1,
+        "product_number": "POWERSTAR_LED",
+        "nickname": "Philodendron_lamp",
+        "type": "lamp",
+        "state-metadata": {
+            "state-type": "float", // imagine it's continuous
+            "min-value": 0.0,
+            "max-value": 100.0
+        },
+        "state": 50.0
+    }
+}
+
+// HTTP GET /actuators/0/brief
+{ 
+    "actuator": {
+        "id": 0,
+        "state": false
+    }
+} 
+
+// HTTP GET /microcontroller
+{
+    "microcontroller": {
+        "id": 0,
+        "product_number": "ESP-WROOM-32",
+        "nickname": "philodendron-zone",
+        "sensors": [
+
+        ],
+        "actuators": [
+
+        ]
+    }
+}
