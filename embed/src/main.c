@@ -72,7 +72,7 @@ static EventGroupHandle_t s_wifi_event_group;
  * - we failed to connect after the maximum amount of retries */
 
 //bit masks used to 
-#define WIFI_CONNECTED_BIT (0<<1) // used to check bit postion 0 on whether it is set to 1 or 0, 1 indicated a success  
+#define WIFI_CONNECTED_BIT (1<<0) // used to check bit postion 0 on whether it is set to 1 or 0, 1 indicated a success  
 #define WIFI_FAIL_BIT      (1<<1) //used to check bit postion 1 on whether it is set to 1 or 0, 0 indicating a failure
 
 static const char *TAG = "wifi station";
