@@ -30,10 +30,9 @@
 #define ADC_ATTEN       ADC_ATTEN_DB_0  // 0 attentuation (scales voltage level down to a range within limits of ADC)
 #define ADC_CHANNEL     ADC1_CHANNEL_6 // Choose desired ADC channel to corresponding GPIO pin
 #define ADC_UNIT        ADC_UNIT_1
+#define NO_OF_SAMPLES 64 // n
+#define SAMPLING_INTERVAL 1000 // ms
 
-typedef struct {
-    int pin;
-} adc_task_params_t;
 
 //set macro values
 // #if CONFIG_ESP_WPA3_SAE_PWE_HUNT_AND_PECK
@@ -166,7 +165,8 @@ void wifi_init_sta(void)
 
 esp_adc_cal_characteristics_t *adc_chars;
 
-void adc_task(void *pParameters, int SAMPLING_INTERVAL, int NO_OF_SAMPLES) { // Recommended value of SAMPING_INTERVAL is 1000, and of NO_OF_SAMPLES is 16, 32, or 64 
+void adc_task(void *pvParameters) { // Recommended value of SAMPING_INTERVAL is 1000, and of NO_OF_SAMPLES is 16, 32, or 64 
+
     // Implemented configuration within task to consolidate code/make it less messy
     if (ADC_UNIT_1 == ADC_UNIT) { // Is the unit being used ADC1?
         adc1_config_width(ADC_WIDTH);
@@ -208,8 +208,6 @@ void adc_task(void *pParameters, int SAMPLING_INTERVAL, int NO_OF_SAMPLES) { // 
 void app_main(void)
 {
     // adc_task in main example
-    adc_task_params_t task_params;
-    task_params.pin = 34;
     xTaskCreate(&adc_task, "adc_task", configMINIMAL_STACK_SIZE, NULL, 5, NULL);
     
     //Initialize NVS
