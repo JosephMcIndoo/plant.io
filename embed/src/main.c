@@ -14,6 +14,8 @@
 #include "lwip/sys.h"
 #include "hal/gpio_types.h"
 
+#include "automation.h"
+
 //macros used because values are constants and it is an easier way to organize all the valuse in one spot
 //can use config file for further orginization
 
@@ -214,6 +216,7 @@ void blink(int count) {
         vTaskDelay(125 / portTICK_PERIOD_MS);
     }
 }
+void blink5() {blink(5);}
 
 void app_main(void)
 {
@@ -251,15 +254,83 @@ void app_main(void)
     };
     gpio_config(&input_config);
 
+    // initialize function pointers for automations
+    function_pointer_init();
+    actions[0] = &blink5;
+    sensors[0] = &read_15;
+
     while (1) {
-        // gpio_set_level(GPIO_NUM_2, 1); // Set pin high
-        // vTaskDelay(1000 / portTICK_PERIOD_MS); // Delay 1 second
-        // gpio_set_level(GPIO_NUM_2, 0); // Set pin low
-        // vTaskDelay(1000 / portTICK_PERIOD_MS); // Delay 1 second
-        if (!gpio_get_level(GPIO_NUM_15)) { // blink if GPIO 15 is low (short pin to ground)
-            // Q: does gpio_get_level at this moment return only a 0 or a 1, or is it a range of many integers?
-            blink(5);
-            vTaskDelay(1000/portTICK_PERIOD_MS);
+        char* bytecode = "a0 s0 v0 c= i "; // stack-based/reverse polish notation, subjec to change
+        interpret(bytecode, strlen(bytecode));
+    }
+}
+
+int read_15() {
+    return gpio_get_level(GPIO_NUM_15);
+}
+
+
+// i: if
+// s: sensor
+// a: action
+// c: comparator (assumes int)
+    // c<, c>, c<=, c>=, c=
+// v: value (an int)
+    // 
+// e: end
+// () parens
+//  : null/empty/ignore
+
+// VERY SCUFFED
+void interpret(char bytecode[], int bc_len) {
+    SP = 0;
+    // "i c= s1 v1 a1" // prefix-order
+    // bytecode = "a0 s0 v1 c= i "; // stack-based/reverse polish notation
+    for (int i=0; i<bc_len; ++i) {
+        switch (bytecode[i]) {
+            case 'a': // push action to stack
+               int action_num = bytecode[++i]-'0'; // TODO: decode this better in the future
+               PUSH(actions[action_num]); // note: function pointer is also 32-bit, so we can push to stack
+
+            break;
+            case 's': // push sensor reading to stack
+                int sensor_num = bytecode[++i]-'0';
+                PUSH(sensors[sensor_num]());
+
+            break;
+            case 'v': // push value (0-9) to stack (TODO: extend)
+                int value = bytecode[++i]-'0';
+                PUSH(value);
+
+            break;
+            case 'c': // for time being, just assume comparison is ==
+                char comparator = bytecode[++i];
+                int rhs = POP();
+                int lhs = POP();
+                switch (comparator) {
+                    case '=':
+                        PUSH(lhs == rhs);
+                    break;
+                    default:
+                        PUSH(-1);
+                }
+
+            break;
+            case 'i': // if condition then response
+                int condition = POP();
+                void (*response)(void) = (void*) POP();
+                if (condition) {
+                    response();
+                }
+
+            break;
         }
+    }
+}
+
+void function_pointer_init() {
+    for (int i=0; i<FP_COUNT; ++i) {
+        actions[i] = &no_op;
+        sensors[i] = &zero;
     }
 }
