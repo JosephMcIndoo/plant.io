@@ -1,0 +1,32 @@
+Goal: let end user upload homemade automation script for plantio device
+General idea: make a small interpreted language that allows user to read from sensors, write to actuators in their script.
+Modifying this script should not require reflashing the MCU, so we want it to be "data" (i.e. interpreted code)
+In order to access sensors and actuators, we'll need to write little bindings/"drivers" that expose this functionality to the script environment
+
+Eventually, we could make this into a complete mini programming language, but for MVP, we'll keep it simple.
+(Note: this is subject to breaking change and redesign in the future)
+
+MVP functionality:
+- The script is called at every iteration of some event loop
+- User can issue the following commands in their script:
+    - `no-op`
+    - `set <output_name> <value>`
+    - `if <input_name> <value> <comparator>, set <output_name> <value>`
+We will not support variables for the time being.
+
+
+
+
+
+
+
+
+
+
+
+A vision for the future:
+(if (> 60 (+ 32 (/ 5 (* 9 (read temp-sensor))))) (set! heater True) ())  ; where `temp-sensor` and `heater` are "guest" functions defined in our driver code
+(if (< 70 (+ 32 (/ 5 (* 9 (read temp-sensor))))) (set! heater False) ())
+
+Or mayybe something less lispy :(
+But that's nothing to worry abt rn
