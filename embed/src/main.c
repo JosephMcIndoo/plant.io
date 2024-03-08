@@ -204,6 +204,16 @@ esp_adc_cal_characteristics_t *adc_chars;
 
 // }
 
+// blinks led `count` many times
+// requires that gpio stuff is all set up
+void blink(int count) {
+    for (int i=0; i<count; ++i) {
+        gpio_set_level(GPIO_NUM_2, 1);
+        vTaskDelay(125 / portTICK_PERIOD_MS);
+        gpio_set_level(GPIO_NUM_2, 0);
+        vTaskDelay(125 / portTICK_PERIOD_MS);
+    }
+}
 
 void app_main(void)
 {
@@ -232,10 +242,24 @@ void app_main(void)
     };
     gpio_config(&output_config);
 
+    gpio_config_t input_config = {
+        .pin_bit_mask = (1ULL << GPIO_NUM_15),
+        .mode = GPIO_MODE_INPUT,
+        .pull_up_en = GPIO_PULLUP_ENABLE,
+        .pull_down_en = GPIO_PULLDOWN_DISABLE,
+        .intr_type = GPIO_INTR_DISABLE
+    };
+    gpio_config(&input_config);
+
     while (1) {
-        gpio_set_level(GPIO_NUM_2, 1); // Set pin high
-        vTaskDelay(1000 / portTICK_PERIOD_MS); // Delay 1 second
-        gpio_set_level(GPIO_NUM_2, 0); // Set pin low
-        vTaskDelay(1000 / portTICK_PERIOD_MS); // Delay 1 second
+        // gpio_set_level(GPIO_NUM_2, 1); // Set pin high
+        // vTaskDelay(1000 / portTICK_PERIOD_MS); // Delay 1 second
+        // gpio_set_level(GPIO_NUM_2, 0); // Set pin low
+        // vTaskDelay(1000 / portTICK_PERIOD_MS); // Delay 1 second
+        if (!gpio_get_level(GPIO_NUM_15)) { // blink if GPIO 15 is low (short pin to ground)
+            // Q: does gpio_get_level at this moment return only a 0 or a 1, or is it a range of many integers?
+            blink(5);
+            vTaskDelay(1000/portTICK_PERIOD_MS);
+        }
     }
 }
