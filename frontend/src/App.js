@@ -5,8 +5,6 @@ import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import {Automation} from './components/Automation';
 
 function App() {
-  
-
   return (
     <Router>
       <div className='bg-slate-700 w-full absolute'>
