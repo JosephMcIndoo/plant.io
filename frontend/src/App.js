@@ -9,15 +9,13 @@ function App() {
 
   return (
     <Router>
-      <div>
+      <div className='bg-slate-700 w-full absolute'>
         <Routes>
           <Route path="/" element={<ChartModal />} />
           <Route path="/automation" element={<Automation />} />
         </Routes>
       </div>
     </Router>
-
-
   );
 };
 
