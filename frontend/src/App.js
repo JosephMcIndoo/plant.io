@@ -7,7 +7,7 @@ import {Automation} from './components/Automation';
 function App() {
   return (
     <Router>
-      <div className='bg-slate-700 w-full absolute'>
+      <div className='bg-slate-600 w-full absolute'>
         <Routes>
           <Route path="/" element={<ChartModal />} />
           <Route path="/automation" element={<Automation />} />

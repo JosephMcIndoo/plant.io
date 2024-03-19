@@ -2,8 +2,8 @@ import Chart from "chart.js/auto";
 import { Line } from 'react-chartjs-2';
 import Settings from './settings.png';
 import { ReactComponent as Plus } from './plus.svg';
-import { useState } from "react";
-
+import { useState, useEffect } from "react";
+import { getChartData } from './BackendInterpolation';
 
 const chartData = {
     labels: ['January', 'February', 'March', 'April', 'May', 'June', 'July'],
@@ -16,10 +16,11 @@ const chartData = {
             borderWidth: 2
         }
     ]
-  };
+};
 
 
 export function Graph(x, y) {
+    const variables = ['var1', 'var2', 'var3', 'var4', 'var5']; // Replace with actual variables from backend
     const [axes, setAxes] = useState([x, y]);
     const [settings, setSettings] = useState(false);
     function setttings() {

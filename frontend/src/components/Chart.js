@@ -12,14 +12,12 @@ export function ChartModal() {
         <>
             <div className='relative flex flex-col items-center justify-center bg-slate-100 rounded-2xl mt-20 m-12 p-10 px-32'>
                 <h1 className='mt-0 font-bold text-4xl py-10 flex w-4/5 justify-center text-center'>Plantio</h1>
-                
                     {graphs.map((graph, index) => {
                         return(
                             <div className='relative w-full m-5 justify-center flex'>
                                 <Graph x={graph[0]} y={graph[1]}/>
                             </div>
                     )})}
-                
                 <div className='absolute top-5 left-5 justify-center'>
                     <button 
                         className="flex items-center justify-center px-2 py-2 bg-slate-700 z-10 rounded-xl text-white hover:bg-slate-500 duration-200 ease-in-out"
