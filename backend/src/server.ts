@@ -1,8 +1,9 @@
 import express from "express";
-import { TestRouter } from "./api/routes/test";
+import { LogsRouter } from "./api/routes/logs";
 
 const server = express();
 
-server.use("/", TestRouter);
+server.use(express.json());
+server.use("/logs", LogsRouter);
 
 export { server };
