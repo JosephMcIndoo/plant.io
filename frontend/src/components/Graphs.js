@@ -63,7 +63,7 @@ export function Graph(chartNum) {
     }
 
     // Sample data
-    
+
 
     const [chartData, setChartData] = useState({
         datasets: []
@@ -118,6 +118,9 @@ export function Graph(chartNum) {
                 x: {
                     type: 'linear',
                     position: 'bottom'
+                }, y : {
+                    max : 100,    
+                    min : 0
                 }
             }
         }
@@ -127,7 +130,7 @@ export function Graph(chartNum) {
         <>
             <canvas id={`myChart${chartNum}`}></canvas>
             {/* Settings panel */}
-            <div className={`absolute top-10 right-7 z-30 p-2 items-center justify-center bg-slate-500 rounded-xl ${settings ? "w-72 " : "w-10 h-10"} duration-200 ease-in-out`}>
+            <div className={`absolute top-10 right-7 z-30 p-2 items-center justify-center bg-slate-500 rounded-xl ${settings ? "w-56" : "w-10 h-10"} duration-200 ease-in-out`}>
                 <button
                     className={`absolute items-center justify-center px-2 py-2 z-40 ${settings ? "top-1 right-1" : "top-0 right-0"} rounded-xl text-white hover:bg-slate-600 duration-200 ease-in-out`}
                     onClick={toggleSettings}
@@ -138,7 +141,7 @@ export function Graph(chartNum) {
                 {settings && (
                     <div className="flex top-20 left-0 z-20">
                         {/* X-Axis */}
-                        <div className="flex flex-col p-2 animate-fade-in">
+                        {/* <div className="flex flex-col p-2 animate-fade-in">
                             <h1 className="font-bold"> X-Axis </h1>
                             {variables.map((variable, index) => (
                                 <label key={index}>
@@ -146,10 +149,10 @@ export function Graph(chartNum) {
                                     {variable}
                                 </label>
                             ))}
-                        </div>
+                        </div> */}
                         {/* Y-Axis */}
                         <div className="flex flex-col p-2 animate-fade-in">
-                            <h1 className="font-bold"> Y-Axis </h1>
+                            <h1 className="font-bold"> Y Vars </h1>
                             {variables.map((variable, index) => (
                                 <label key={index}>
                                     <input type="checkbox" name="axes" value={index} onChange={() => {
@@ -157,7 +160,9 @@ export function Graph(chartNum) {
                                             ? axes[1].filter(i => i !== index)
                                             : [...axes[1], index];
                                         setAxes([axes[0], newAxes]);
-                                    }}/>
+                                    }}
+                                    checked={axes[1].includes(index)}
+                                    />
                                     {variable}
                                 </label>
                             ))}
