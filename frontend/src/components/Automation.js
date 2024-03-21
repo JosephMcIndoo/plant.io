@@ -6,6 +6,7 @@ export function Automation() {
     const [automationScript, setAutomationScript] = useState('');
 
     function run() {
+        // Post request to backend that sends the automation script
         setAutomationScript('');
     }
     return (
