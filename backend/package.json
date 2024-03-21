@@ -5,7 +5,8 @@
   "main": "index.js",
   "scripts": {
     "server": "npx tsx src/index.ts",
-    "mqtt": "npx tsx src/queue/mqtt.ts"
+    "mqtt": "npx tsx src/queue/mqtt.ts",
+    "db:migrate": "npx tsx src/db/migrate.ts"
   },
   "author": "",
   "license": "ISC",
