@@ -21,13 +21,28 @@ export function Graph(chartNum) {
     // Function to update datasets
     useEffect(() => {
         updateDataSets();
-    }, [axes]); // Trigger updateDataSets when axes change
+    }, [axes]);
+
+    useEffect(() => {
+        updateData(getChartData());
+        console.log(getChartData());
+        console.log("Updated data:" + data);
+        updateDataSets();
+        const timer = setInterval(() => {
+            updateData(getChartData());
+        }, 1000);
+
+        return () => clearInterval(timer);
+    }, []); 
 
     function updateDataSets() {
+        updateData(getChartData());
+        const useData = Object.values(data);
+        console.log("Use data:" + useData);
         const yDataSet = axes[1].map(index => ({
             label: variables[index],
-            data: data[variables[index]].map((y_val, i) => ({ x: data[variables[axes[0]]][i], y: y_val })),
-            borderColor: 'rgba(255, 99, 132, 1)',
+            data: useData[index].map((y_val, i) => ({ x: useData[axes[0]][i], y: y_val })) ?? [],
+            borderColor: 'rgba(255, 99, 132, 1)', 
             borderWidth: 2
         }));
 
@@ -40,20 +55,23 @@ export function Graph(chartNum) {
     }
 
     // Sample data
-    const data = {
+    const [data, updateData] = useState(
+    {
         time: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
         temperature: [20, 21, 22, 23, 24, 25, 26, 27, 28, 29],
         humidity: [50, 51, 52, 53, 54, 55, 56, 57, 58, 59],
         light: [100, 101, 102, 103, 104, 105, 106, 107, 108, 109],
         moisture: [75, 76, 77, 78, 79, 80, 81, 82, 83, 84],
-    };
+    }
+    );
 
     const [chartData, setChartData] = useState({
         datasets: []
     });
 
     // Create chart after component mount
-    useEffect(() => { 
+    useEffect(() => {
+        updateData(getChartData());
         const canvas = document.getElementById(`myChart${chartNum}`);
         const ctx = canvas.getContext('2d');
         const newChart = new Chart(ctx, config);
