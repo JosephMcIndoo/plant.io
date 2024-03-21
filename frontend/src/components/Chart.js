@@ -16,7 +16,7 @@ export function ChartModal() {
                     {graphs.map((graph, index) => {
                         return(
                             <div className='relative w-full m-5 justify-center flex'>
-                                <Graph/>
+                                <Graph chartNum = {index}/>
                             </div>
                     )})}
                 <div className='absolute top-5 left-5 justify-center'>
