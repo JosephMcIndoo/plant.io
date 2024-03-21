@@ -9,7 +9,7 @@ export function Automation() {
         const apiUrl = 'http://0.0.0.0:3000/poststring'; // Replace with your API endpoint URL
         const postData = {
             // Define your data to be sent in the POST request
-            inputString: automationScript,
+            autoScript: automationScript,
         };
 
         const requestOptions = {

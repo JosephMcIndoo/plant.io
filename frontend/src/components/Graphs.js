@@ -112,6 +112,8 @@ export function Graph(chartNum) {
         type: 'line',
         data: chartData,
         options: {
+            responsive: true,
+            animation: false,
             scales: {
                 x: {
                     type: 'linear',
