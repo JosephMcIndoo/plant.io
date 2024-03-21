@@ -6,7 +6,31 @@ export function Automation() {
     const [automationScript, setAutomationScript] = useState('');
 
     function run() {
-        // Post request to backend that sends the automation script
+        const apiUrl = 'http://0.0.0.0:3000/poststring'; // Replace with your API endpoint URL
+        const postData = {
+            // Define your data to be sent in the POST request
+            inputString: automationScript,
+        };
+
+        const requestOptions = {
+            method: 'POST',
+            headers: {
+                
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(postData)
+        };
+
+        fetch(apiUrl, requestOptions)
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                console.log(response.json());
+            })
+            .catch(error => {
+                console.error('There was a problem with the request:', error);
+            });
         setAutomationScript('');
     }
     return (

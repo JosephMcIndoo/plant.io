@@ -47,6 +47,7 @@ export const getVariableNames = (req: Request, res: Response) => {
 };
 
 export const postString = (req: Request, res: Response) => {
+  res.setHeader('Access-Control-Allow-Origin', '*');
   const inputString: string = req.body.input;
   console.log(`Received string: ${inputString}`);
   // Here you can add the code to send the string to the embedded device
