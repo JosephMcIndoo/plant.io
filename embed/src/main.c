@@ -9,29 +9,22 @@
 #include "nvs_flash.h"
 #include "driver/gpio.h"
 #include "esp_adc_cal.h"
-
+#include "driver/adc.h"
+#include <stdlib.h>
+#include "esp_task_wdt.h"
+#include "esp_http_server.h"
 #include "lwip/err.h"
 #include "lwip/sys.h"
 #include "hal/gpio_types.h"
 
-//macros used because values are constants and it is an easier way to organize all the valuse in one spot
-//can use config file for further orginization
+#include <mqtt_client.h>
 
-#define ESP_WIFI_SSID      "YOUR_SSID"
-#define ESP_WIFI_PASS      "YOUR_PASSWORD"
-#define ESP_MAXIMUM_RETRY  5
+#include "adc_config.h"
+#include "broker_config.h"
+#include "wifi_config.h"
 
-#define ESP_WIFI_SAE_MODE  "BOTH"
-#define EXAMPLE_H2E_IDENTIFIER ""
-#define ESP_WIFI_SCAN_AUTH_MODE_THRESHOLD "WPA2 PSK"
 
-#define DEFAULT_VREF    1100    // Default reference voltage of 1100 mV b/c ESP32's nominal value of internal voltage is 1.1V
-#define ADC_WIDTH       ADC_WIDTH_BIT_10    // 10 bit res (width of each 'sip')
-#define ADC_ATTEN       ADC_ATTEN_DB_0  // 0 attentuation (scales voltage level down to a range within limits of ADC)
-#define ADC_CHANNEL     ADC1_CHANNEL_6 // Choose desired ADC channel to corresponding GPIO pin
-#define ADC_UNIT        ADC_UNIT_1
-#define NO_OF_SAMPLES 64 // n
-#define SAMPLING_INTERVAL 1000 // ms
+
 
 
 //set macro values
@@ -163,11 +156,48 @@ void wifi_init_sta(void)
     }
 }
 
-esp_adc_cal_characteristics_t *adc_chars;
+static const char *CHARACTERIZATION_TAG = "Characterization Status";
+static const char *READING = "Reading/Result";
+static const char *MQTT = "MQTT Status";
+static bool mqtt_connected = false;
+static const char *TEST = "TEST";
+static esp_err_t mqtt_event_handler(esp_mqtt_event_handle_t event)
+{
+    switch (event->event_id) {
+        case MQTT_EVENT_CONNECTED:
+            mqtt_connected = true;
+            break;
+        case MQTT_EVENT_DISCONNECTED:
+            mqtt_connected = false;
+            break;
+        // Handle other events...
+        default:
+            ESP_LOGE(TAG, "UNEXPECTED EVENT");
+    }
+    return ESP_OK;
+}
+
 
 void adc_task(void *pvParameters) { // Recommended value of SAMPING_INTERVAL is 1000, and of NO_OF_SAMPLES is 16, 32, or 64 
+    float result = 0;
+    static esp_adc_cal_characteristics_t *adc_chars;
+    esp_mqtt_client_config_t mqtt_cfg = {
+        .broker.address.uri = MQTT_URL,
+        .credentials.username = MQTT_USER,
+        .credentials.authentication.password = MQTT_PASS,
+    };
 
+    esp_mqtt_client_handle_t client = esp_mqtt_client_init(&mqtt_cfg);
+
+    esp_err_t mqtt_start_result = esp_mqtt_client_start(client);
+
+    if (mqtt_start_result == ESP_OK) {
+        ESP_LOGI(MQTT, "MQTT client started successfully.\n");
+    } else {
+        ESP_LOGI(MQTT, "MQTT client failed to start.\n");
+    }
     // Implemented configuration within task to consolidate code/make it less messy
+
     if (ADC_UNIT_1 == ADC_UNIT) { // Is the unit being used ADC1?
         adc1_config_width(ADC_WIDTH);
         adc1_config_channel_atten(ADC_CHANNEL, ADC_ATTEN);
@@ -179,9 +209,9 @@ void adc_task(void *pvParameters) { // Recommended value of SAMPING_INTERVAL is 
     esp_adc_cal_value_t val_type = esp_adc_cal_characterize(ADC_UNIT, ADC_ATTEN, ADC_WIDTH, DEFAULT_VREF, adc_chars); // esp_adc_cal_characterize calibrates the ADC according to the parameters given. Very abstracted.
 
     if (val_type) {
-        printf("ADC characterization successful.\n");
+        ESP_LOGI(CHARACTERIZATION_TAG, "ADC characterization successful.\n");
     } else {
-        printf("ADC characterization failed. Default parameters will be used instead.\n");
+        ESP_LOGI(CHARACTERIZATION_TAG,"ADC characterization failed. Default parameters will be used instead.\n");
 
     }
 
@@ -191,26 +221,28 @@ void adc_task(void *pvParameters) { // Recommended value of SAMPING_INTERVAL is 
             if (ADC_UNIT == ADC_UNIT_1) {
                 adc_reading += adc1_get_raw((adc1_channel_t)ADC_CHANNEL);
             } else { 
-                adc_reading += adc2_get_raw((adc2_channel_t)ADC_CHANNEL, ADC_WIDTH);
+                int raw;
+                adc2_get_raw((adc2_channel_t)ADC_CHANNEL, ADC_WIDTH, &raw);
+                adc_reading += raw;
             }
         }
         adc_reading /= NO_OF_SAMPLES; // Average of the collected converted reading 
         //Convert adc_reading to voltage in mV
-        uint32_t voltage = esp_adc_cal_raw_to_voltage(adc_reading, adc_chars);
-        printf("Raw: %d\tVoltage: %dmV\n", adc_reading, voltage);
+        result = ((int)adc_reading / MAX_RAW) * 100;
+        uint32_t voltage = esp_adc_cal_raw_to_voltage(adc_reading, adc_chars);        
+        ESP_LOGI(READING, "Raw: %lu\t Voltage: %lumV Result: %0.1f%%", adc_reading, voltage, result);
+        char result_str[10];
+        snprintf(result_str, sizeof(result_str), "%.1f", result);
+        esp_mqtt_client_publish(client, "/topic/humidity", result_str, strlen(result_str), 1, 0);
+
         vTaskDelay(pdMS_TO_TICKS(SAMPLING_INTERVAL)); // This controls the interval of the 'sips'
     }
-    free(adc_chars);
-
 }
 
 
-void app_main(void)
-{
-    // adc_task in main example
-    xTaskCreate(&adc_task, "adc_task", configMINIMAL_STACK_SIZE, NULL, 5, NULL);
-    
-    //Initialize NVS
+void app_main(void){
+
+
     esp_err_t ret = nvs_flash_init();
     if (ret == ESP_ERR_NVS_NO_FREE_PAGES || ret == ESP_ERR_NVS_NEW_VERSION_FOUND) {
       ESP_ERROR_CHECK(nvs_flash_erase());
@@ -220,6 +252,13 @@ void app_main(void)
 
     ESP_LOGI(TAG, "ESP_WIFI_MODE_STA");
     wifi_init_sta();
+
+    xTaskCreate(&adc_task, "adc_task", 2048, NULL, 5, NULL);
+    // vTaskDelay(pdMS_TO_TICKS(5000));
+    // vTaskDelete(handle_adc);
+    
+    //Initialize NVS
+    
 
     gpio_config_t output_config = {
         .pin_bit_mask = (1ULL << GPIO_NUM_2),
