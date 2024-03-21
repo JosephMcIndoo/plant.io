@@ -12,13 +12,14 @@ let variables = [];
 
 
 // Function to fetch chart data from the backend and update the exported data
-async function fetchChartDataAndUpdate() {
+export async function fetchChartDataAndUpdate() {
     // try {
         const response = await fetch('http://0.0.0.0:3000/data');
         // if (!response.ok) {
         //     throw new Error('Failed to fetch data');
         // }
         const data = JSON.parse(await response.json());
+        // console.log(data);
         chartData = data;
     // } catch (error) {
     //     console.error('Error fetching data:', error);
@@ -32,7 +33,7 @@ export function getChartData() {
     return chartData;
 }
 
-setInterval(fetchChartDataAndUpdate, 1000);
+setInterval(fetchChartDataAndUpdate, 5000);
 
 export async function fetchVariables() {
     const response = await fetch('http://0.0.0.0:3000/variables');

@@ -2,12 +2,23 @@ import Chart from "chart.js/auto";
 import { Line, Scatter} from 'react-chartjs-2';
 import Settings from './settings.png';
 import { ReactComponent as Plus } from './plus.svg';
-import { useState, useEffect } from "react";
-import { fetchVariables, getChartData, getVariableData } from './BackendInterpolation';
+import { useState, useEffect, useRef } from "react";
+import { fetchChartDataAndUpdate, fetchVariables, getChartData, getVariableData } from './BackendInterpolation';
 
 
 export function Graph(chartNum) {
     // await fetchVariables();
+    const chartRef = useRef(null);
+
+    // const [data, updateData] = useState(
+    //     {
+    //         time: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
+    //         temperature: [20, 21, 22, 23, 24, 25, 26, 27, 28, 29],
+    //         humidity: [50, 51, 52, 53, 54, 55, 56, 57, 58, 59],
+    //         light: [100, 101, 102, 103, 104, 105, 106, 107, 108, 109],
+    //         moisture: [75, 76, 77, 78, 79, 80, 81, 82, 83, 84],
+    //     }
+    //     );
 
     const variables = ["time", "temperature", "humidity", "light", "moisture"];
     const [axes, setAxes] = useState([0, [1, 2]]);
@@ -20,25 +31,22 @@ export function Graph(chartNum) {
 
     // Function to update datasets
     useEffect(() => {
-        updateDataSets();
-    }, [axes]);
-
-    useEffect(() => {
-        updateData(getChartData());
-        console.log(getChartData());
-        console.log("Updated data:" + data);
+        // fetchChartDataAndUpdate();
         updateDataSets();
         const timer = setInterval(() => {
-            updateData(getChartData());
-        }, 1000);
-
+            updateDataSets();
+        }, 10000); // Update every 10 seconds
+    
         return () => clearInterval(timer);
-    }, []); 
+    }, [axes]);
+
 
     function updateDataSets() {
-        updateData(getChartData());
-        const useData = Object.values(data);
-        console.log("Use data:" + useData);
+        // updateData(getChartData());
+        const data = getChartData();
+        console.log(Object.values(data));
+        const useData = Object.values(getChartData());
+        console.log(useData);
         const yDataSet = axes[1].map(index => ({
             label: variables[index],
             data: useData[index].map((y_val, i) => ({ x: useData[axes[0]][i], y: y_val })) ?? [],
@@ -55,29 +63,50 @@ export function Graph(chartNum) {
     }
 
     // Sample data
-    const [data, updateData] = useState(
-    {
-        time: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
-        temperature: [20, 21, 22, 23, 24, 25, 26, 27, 28, 29],
-        humidity: [50, 51, 52, 53, 54, 55, 56, 57, 58, 59],
-        light: [100, 101, 102, 103, 104, 105, 106, 107, 108, 109],
-        moisture: [75, 76, 77, 78, 79, 80, 81, 82, 83, 84],
-    }
-    );
+    
 
     const [chartData, setChartData] = useState({
         datasets: []
     });
 
-    // Create chart after component mount
+
     useEffect(() => {
-        updateData(getChartData());
         const canvas = document.getElementById(`myChart${chartNum}`);
         const ctx = canvas.getContext('2d');
-        const newChart = new Chart(ctx, config);
-        return () => newChart.destroy(); // Cleanup chart on component unmount
+        chartRef.current = new Chart(ctx, config);
+        return () => chartRef.current.destroy(); // Cleanup chart on component unmount
     }, []); // Empty dependency array ensures this effect runs only once after initial render
 
+    // Function to update chart data and options
+    // useEffect(() => {
+    //     updateData(getChartData());
+    //     console.log(getChartData());
+    //     console.log("Updated data:" + data);
+    //     updateDataSets();
+    //     console.log("Chart object:", chartRef);
+    //     try {
+    //         chartRef.current.data = chartData;
+    //         chartRef.current.update();
+    //         console.log("Chart updated successfully");
+    //     } catch (error) {
+    //         console.error("Failed to update chart:", error);
+    //     }
+    //     const timer = setInterval(() => {
+    //         updateData(getChartData());
+    //     }, 1000);
+
+    //     return () => clearInterval(timer);
+    // }, []);
+    useEffect(() => {
+        try {
+            chartRef.current.data = chartData;
+            chartRef.current.update();
+            console.log("Chart updated successfully");
+        } catch (error) {
+            console.error("Failed to update chart:", error);
+        }
+    }, [chartData]);
+    
     // Configuration for Chart.js
     const config = {
         type: 'line',
