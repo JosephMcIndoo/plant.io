@@ -1,0 +1,4 @@
+#ifndef PLANTIO_GPIO_H
+#define PLANTIO_GPIO_H
+
+#endif //PLANTIO_GPIO_H

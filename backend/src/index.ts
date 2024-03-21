@@ -2,7 +2,7 @@ import { server } from "./server";
 import { config } from "dotenv";
 
 config();
-const PORT = process.env.PORT;
+const PORT = process.env.PORT || 3000;
 server.listen(PORT, () => {
   console.log(`Listening on port ${PORT}`);
 });
