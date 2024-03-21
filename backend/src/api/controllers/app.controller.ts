@@ -23,12 +23,12 @@ export async function data(req: Request, res: Response) {
 
 type Data = Record<typeof variableList[number], number[]>;
 // Hard-coded data
-const example: Data = {
-  time: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
-  temperature: [30, 31, 32, 33, 34, 35, 36, 37, 38, 39],
-  humidity: [50, 51, 52, 53, 54, 55, 56, 57, 58, 59],
-  light: [10, 11, 12, 13, 14, 15, 16, 17, 18, 19],
-  moisture: [75, 76, 77, 78, 79, 80, 81, 82, 83, 84],
+let example: Data = {
+  time: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+  temperature: [20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 28],
+  humidity: [50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 64],
+  light: [10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 35],
+  moisture: [75, 76, 77, 78, 79, 80, 81, 82, 83, 84, 82],
   
   // {
   //   topic: 'plantio',
@@ -36,8 +36,20 @@ const example: Data = {
   // },
 };
 
+
+function updateData() {
+  example["time"].push(example["time"][example["time"].length - 1] + 1);
+  example["temperature"].push(example["temperature"][example["temperature"].length - 1] + Math.random() * 10 - 5);
+  example["humidity"].push(example["humidity"][example["humidity"].length - 1] + Math.random() * 10 - 5);
+  example["light"].push(example["light"][example["light"].length - 1] + Math.random() * 10 - 5);
+  example["moisture"].push(example["moisture"][example["moisture"].length - 1] + Math.random() * 10 - 5);
+}
+
 export const getTestData = (req: Request, res: Response) => {
   res.setHeader('Access-Control-Allow-Origin', '*');
+
+  updateData();
+
   res.json(JSON.stringify(example));
 };
 

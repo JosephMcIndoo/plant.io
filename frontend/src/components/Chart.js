@@ -8,7 +8,7 @@ import { fetchVariables, getVariableData } from './BackendInterpolation';
 
 export function ChartModal() {
     // Format: [1, 2, ....]
-    const [graphs, setGraphs] = useState([[0,[1, 2]]]);
+    const [graphs, setGraphs] = useState([0]);
     return (
         <>
             <div className='relative flex flex-col items-center justify-center bg-slate-100 rounded-2xl mt-20 m-12 p-10 px-32'>
