@@ -204,9 +204,17 @@ void adc_task(void *pvParameters) { // Recommended value of SAMPING_INTERVAL is 
 
 }
 
+uint64_t getUID() {
+    uint64_t chip_id = 0;
+    chip_id = esp_efuse_mac_get();
+    return chip_id;
+}
+
 
 void app_main(void)
 {
+    
+    uint64_t UID = getUID(); // get uid and assign it
     // adc_task in main example
     xTaskCreate(&adc_task, "adc_task", configMINIMAL_STACK_SIZE, NULL, 5, NULL);
     
@@ -230,10 +238,18 @@ void app_main(void)
     };
     gpio_config(&output_config);
 
+    
+
     while (1) {
         gpio_set_level(GPIO_NUM_2, 1); // Set pin high
         vTaskDelay(1000 / portTICK_PERIOD_MS); // Delay 1 second
         gpio_set_level(GPIO_NUM_2, 0); // Set pin low
         vTaskDelay(1000 / portTICK_PERIOD_MS); // Delay 1 second
+
+        //todo each esp32 tell backend capabilities 
+        //each has a factory id in read memomery only and return that to backend
+        //add rtc timer 
+        //store automation scripts
+        //eeprom permanent memory store the scripts
     }
 }
