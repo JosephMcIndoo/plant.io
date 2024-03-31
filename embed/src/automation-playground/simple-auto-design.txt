@@ -30,3 +30,41 @@ A vision for the future:
 
 Or mayybe something less lispy :(
 But that's nothing to worry abt rn
+
+
+====
+Byte-based opcodes
+
+All values are quads
+First data types we'll support: unsigned int, function pointer
+
+No-op
+Push quad
+Pop quad (just throw it out. idk why you'd need this but it seems useful to have)
+Pop quad (fp) and execute
+Conditional execute (pop )
+Pop two quad and compare, push bool result to stack
+- comparator functions -1 0 1 (later, for floats. saves instruction space)
+- < = > <= >= !=
+- < = > <= >= !=
+Operations
++
+-
+*
+/ (pushes dividend and divisor to stack. can discard with pop)
+~~and~~
+xor
+
+How to handle n-arity?
+
+
+
+
+Do we need two stacks/a queue? (nah, we'll just keep this pushdown for now. can make turing machine later if we need it)
+Each script is an isolated instance. This helps us keep a little state isolated.
+
+ 
+
+
+
+
