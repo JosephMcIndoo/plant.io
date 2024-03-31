@@ -249,6 +249,6 @@ void app_main(void)
 
     while (1) {
         char* bytecode = "a0 s0 v0 c= i "; // stack-based/reverse polish notation, subjec to change
-        interpret(bytecode, strlen(bytecode));
+        // interpret(bytecode, strlen(bytecode));
     }
 }

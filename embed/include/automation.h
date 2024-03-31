@@ -1,6 +1,8 @@
 #ifndef AUTOMATION_H
 #define AUTOMATION_H
-#define value u32_t
+// typedef unsigned long u32_t;
+typedef unsigned long value;
+// #define value u32_t
 
 static value Stack[32];
 static int SP = 0;
@@ -14,26 +16,26 @@ static int (*sensors[FP_COUNT])(void);
 
 // implement n-arity later
 // #define MAX_ARGS 4;
-// static u32_t ArgBuf[4];
-// static u32_t RetVal;
+// static uint32_t ArgBuf[4];
+// static uint32_t RetVal;
 
 // static void
 
-void no_op() {}
-int zero() {return 0;}
+static void sheep_no_op() {}
+static int sheep_zero() {return 0;}
 void blink(int times);
 void blink5();
 
 typedef struct {
     void* fn;
-    u32_t arity;
-    // u32_t returns; // bool
+    int arity;
+    int returns; // bool
 } fn_meta;
 
 void function_pointer_init();
 
 // given a stream of bytes, attempt to interpret and execute
-void interpret(char* bytecode, int bc_length);
+void interpret(const char* bytecode, int bc_length);
 int read_15();
 
 enum Opcode {
@@ -55,4 +57,4 @@ enum Opcode {
     OP_DIV,
 };
 
-#endif
+#endif // AUTOMATION_H

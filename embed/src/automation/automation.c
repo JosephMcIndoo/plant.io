@@ -16,6 +16,9 @@
 #include "lwip/sys.h"
 #include "hal/gpio_types.h"
 
+// plantio libraries
+#include "automation.h"
+
 #include <stdlib.h>
 #include <ctype.h>
 
@@ -95,73 +98,133 @@ int read_15() {
 //     }
 // }
 
-void interpret(char* bytecode, int bc_length) {
+void interpret(const char* bytecode, int bc_length) {
     char* curr = bytecode;
     char* end = bytecode + bc_length*sizeof(char);
     for (char* curr = bytecode; curr<end; curr++) {
+        value arg1,arg2,arg3,arg4;
         switch (*curr) {
             case OP_NONE: break;
             case OP_PUSH:
                 // big endian: int32_t val = ((int32_t*) curr); // TODO: endianness?
                 // need to do it this way bc little endian
-                uint32_t val = 0;
+                value val = 0;
                 for (int i=0; i<4; ++i) {
                     val <<= 8;
-                    val += (uint32_t) *(++curr); // darn i hope this works
+                    val += (value) *(++curr); // darn i hope this works
                 }
                 PUSH(val);
                 break;
-            case OP_POP: POP(); break;
+            case OP_POP: arg1 = POP(); break; // assignment to arg1 is soleley to appease compiler
+            case OP_EXECIF:
+                if (POP() == 0) {
+                    fn_meta* meta = (fn_meta*) POP();
+                    for (int i = 0; i < meta->arity; ++i) {
+                        arg1 = POP(); // the atmosphere is nature's bin
+                    }
+                }; // otherwise flow down
             case OP_EXEC:
                 fn_meta* meta = (fn_meta*) POP();
-                uint32_t ret = 0;
+                value ret = 0;
                 if (meta->arity == 0) {
-                    value (*fun)(value, value, value) = meta->fn;
+                    value (*fun)() = meta->fn;
                     ret = fun();
                 } else if (meta->arity == 1) {
                     value (*fun)(value) = meta->fn; 
-                    ret = fun(POP());
+                    arg1 = POP();
+                    ret = fun(arg1);
                 } else if (meta->arity == 2) {
                     value (*fun)(value, value) = meta->fn;
-                    ret = fun(POP(), POP());
+                    arg2 = POP(); arg1 = POP();
+                    ret = fun(arg1, arg2);
                 } else if (meta->arity == 3) {
                     value (*fun)(value, value, value) = meta->fn;
-                    ret = fun(POP(), POP(), POP());
+                    arg3 = POP(); arg2 = POP(); arg1 = POP();
+                    ret = fun(arg1, arg2, arg3);
                 } else if (meta->arity == 4) {
                     value (*fun)(value, value, value, value) = meta->fn;
-                    ret = fun(POP(), POP(), POP(), POP());
+                    arg4 = POP(); arg3 = POP(); arg2 = POP(); arg1 = POP();
+                    ret = fun(arg1, arg2, arg3, arg4);
                 } // TODO: error handle if arity out of range?
                 if (meta->returns) {
-                    push(ret);
+                    PUSH(ret);
                 }
-                //     // case 0: // find better way to do this
-                //     //     uint32_t (*fun)(void) = meta->fn; 
-                //     //     break;
-                //     case 1: // find better way to do this
-                //         uint32_t (*fun)(value) = meta->fn; 
-                //         ret = fun(POP());
-                //         break;
-                //     case 2:
-                //         value (*fun)(value, value) = meta->fn;
-                //         ret = fun(POP(), POP());
-                //         break;
-
-                // }
-                // just assume 0-arity for now
-                // uint32_t (*fun)(void) = meta->fn;
-                // ret = fun();
-
-                PUSH(ret);
+                break;
+            case OP_LT:
+                arg2 = POP(); arg1 = POP();
+                PUSH(arg1 < arg2); // note: the 2nd pop is actually lhs
+                break;
+            case OP_EQ:
+                arg2 = POP(); arg1 = POP();
+                PUSH(arg1 == arg2);
+                break;
+            case OP_GT:
+                arg2 = POP(); arg1 = POP();
+                PUSH(arg1 > arg2);
+                break;
+            case OP_LEQ:
+                arg2 = POP(); arg1 = POP();
+                PUSH(arg1 <= arg2);
+                break;
+            case OP_NEQ:
+                arg2 = POP(); arg1 = POP();
+                PUSH(arg1 != arg2);
+                break;
+            case OP_GEQ:
+                arg2 = POP(); arg1 = POP();
+                PUSH(arg1 >= arg2);
+                break;
+            case OP_ADD:
+                arg2 = POP(); arg1 = POP();
+                PUSH(arg1 + arg2);
+                break;
+            case OP_SUB:
+                arg2 = POP(); arg1 = POP();
+                PUSH(arg1 - arg2);
+                break;
+            case OP_MULT:
+                arg2 = POP(); arg1 = POP();
+                PUSH(arg1 * arg2);
+                break;
+            case OP_DIV:
+                arg2 = POP(); arg1 = POP();
+                PUSH(arg1 / arg2);
+                PUSH(arg1 % arg2);
                 break;
         }
     }
 }
 
-// void parse_int(char* s, int left)
+// given hex string, transforms hex string into bytestring
+// returns length of bytestring
+int hex_to_bytes(const char* hex_string, char* bytes, int max_bytes) {
+    int doub_len = strlen(hex_string);
+    int len = doub_len / 2;
+    if (doub_len % 2 == 1) return -1; // perhaps remove later for speed
+    if (len > max_bytes) return -1;
+    for (int i = 0; i < len; ++i) {
+        char byte = 0;
+        char h1 = hex_string[2*i];
+        if (h1 >= 'a') {
+            byte += h1-'a';
+        } else if (h1 >= '0') {
+            byte += h1-'0';
+        } // TODO: could be more robust, or error more vocally
+        byte <<= 4;
+        char h2 = hex_string[2*i+1];
+        if (h2 >= 'a') {
+            byte += h1-'a';
+        } else if (h2 >= '0') {
+            byte += h2-'0';
+        }
+        bytes[i] = byte;
+    }
+    return len;
+}
 
 void function_pointer_init() {
     for (int i=0; i<FP_COUNT; ++i) {
-        actions[i] = &no_op;
-        sensors[i] = &zero;
+        // actions[i] = &sheep_no_op;
+        // sensors[i] = &sheep_zero;
     }
 }
