@@ -24,6 +24,8 @@ export function Graph(chartNum) {
     const [axes, setAxes] = useState([0, [1, 2]]);
     const [settings, setSettings] = useState(false);
 
+    const graphColors = ["rgba(255, 99, 132, 1)", "rgba(54, 162, 235, 1)", "rgba(255, 206, 86, 1)", "rgba(75, 192, 192, 1)", "rgba(153, 102, 255, 1)"];
+
     // Function to toggle settings
     function toggleSettings() {
         setSettings(!settings);
@@ -35,7 +37,7 @@ export function Graph(chartNum) {
         updateDataSets();
         const timer = setInterval(() => {
             updateDataSets();
-        }, 10000); // Update every 10 seconds
+        }, 1000); // Update every 1 seconds
     
         return () => clearInterval(timer);
     }, [axes]);
@@ -50,7 +52,7 @@ export function Graph(chartNum) {
         const yDataSet = axes[1].map(index => ({
             label: variables[index],
             data: useData[index].map((y_val, i) => ({ x: useData[axes[0]][i], y: y_val })) ?? [],
-            borderColor: 'rgba(255, 99, 132, 1)', 
+            borderColor: graphColors[index], 
             borderWidth: 2
         }));
 
