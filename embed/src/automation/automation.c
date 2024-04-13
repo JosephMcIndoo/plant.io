@@ -38,8 +38,6 @@ int read_15() {
     return gpio_get_level(GPIO_NUM_15);
 }
 
-
-
 // i: if
 // s: sensor
 // a: action
@@ -50,53 +48,6 @@ int read_15() {
 // e: end
 // () parens
 //  : null/empty/ignore
-
-// // VERY SCUFFED
-// void interpret(char bytecode[], int bc_len) {
-//     SP = 0;
-//     // "i c= s1 v1 a1" // prefix-order
-//     // bytecode = "a0 s0 v1 c= i "; // stack-based/reverse polish notation
-//     for (int i=0; i<bc_len; ++i) {
-//         switch (bytecode[i]) {
-//             case 'a': // push action to stack
-//                int action_num = bytecode[++i]-'0'; // TODO: decode this better in the future
-//                PUSH(actions[action_num]); // note: function pointer is also 32-bit, so we can push to stack
-
-//             break;
-//             case 's': // push sensor reading to stack
-//                 int sensor_num = bytecode[++i]-'0';
-//                 PUSH(sensors[sensor_num]());
-
-//             break;
-//             case 'v': // push value (0-9) to stack (TODO: extend)
-//                 int value = bytecode[++i]-'0';
-//                 PUSH(value);
-
-//             break;
-//             case 'c': // for time being, just assume comparison is ==
-//                 char comparator = bytecode[++i];
-//                 int rhs = POP();
-//                 int lhs = POP();
-//                 switch (comparator) {
-//                     case '=':
-//                         PUSH(lhs == rhs);
-//                     break;
-//                     default:
-//                         PUSH(-1);
-//                 }
-
-//             break;
-//             case 'i': // if condition then response
-//                 int condition = POP();
-//                 void (*response)(void) = (void*) POP();
-//                 if (condition) {
-//                     response();
-//                 }
-
-//             break;
-//         }
-//     }
-// }
 
 void interpret(const char* bytecode, int bc_length) {
     char* curr = bytecode;
@@ -118,13 +69,13 @@ void interpret(const char* bytecode, int bc_length) {
             case OP_POP: arg1 = POP(); break; // assignment to arg1 is soleley to appease compiler
             case OP_EXECIF:
                 if (POP() == 0) {
-                    fn_meta* meta = (fn_meta*) POP();
+                    fn_meta* meta = &fn_table[POP()]; // takes function as an index into the fn table
                     for (int i = 0; i < meta->arity; ++i) {
                         arg1 = POP(); // the atmosphere is nature's bin
                     }
                 }; // otherwise flow down
             case OP_EXEC:
-                fn_meta* meta = (fn_meta*) POP();
+                fn_meta* meta = &fn_table[POP()];
                 value ret = 0;
                 if (meta->arity == 0) {
                     value (*fun)() = meta->fn;
@@ -224,7 +175,9 @@ int hex_to_bytes(const char* hex_string, char* bytes, int max_bytes) {
 
 void function_pointer_init() {
     for (int i=0; i<FP_COUNT; ++i) {
-        // actions[i] = &sheep_no_op;
-        // sensors[i] = &sheep_zero;
+        // fn_table[i] = {.fn = &no_op, .arity = 0, .returns = 0};
+        fn_table[i].fn = &no_op;
+        fn_table[i].arity = 0;
+        fn_table[i].returns = 0;
     }
 }

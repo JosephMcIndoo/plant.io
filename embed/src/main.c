@@ -244,11 +244,28 @@ void app_main(void)
 
     // initialize function pointers for automations
     function_pointer_init();
-    actions[0] = &blink5;
-    sensors[0] = &read_15;
+    fn_table[0].fn = &blink5;
+    fn_table[0].arity = 0;
+    fn_table[0].returns = 0;
+    fn_table[1].fn = &read_15;
+    fn_table[1].arity = 0;
+    fn_table[1].returns = 1;
+    fn_table[2].fn = &blink;
+    fn_table[2].arity = 1;
+    fn_table[2].returns = 0;
 
     while (1) {
-        char* bytecode = "a0 s0 v0 c= i "; // stack-based/reverse polish notation, subjec to change
-        // interpret(bytecode, strlen(bytecode));
+        // char* bytecode = "a0 s0 v0 c= i "; // stack-based/reverse polish notation, subjec to change
+        // // interpret(bytecode, strlen(bytecode));
+        /*
+        PUSH 1 // blink_5
+            01 00 00 00 01
+        EXEC // execs blink_5
+            03
+        */
+        char* hexcode = "010000000103";
+        char bytes[64];
+        int bc_length = hex_to_bytes(hexcode, bytes, 64);
+        interpret(bytes, bc_length); // i am not looking forward to debugging this. well, that's what i'm about to do!
     }
 }

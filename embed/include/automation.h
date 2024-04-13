@@ -11,8 +11,9 @@ static int SP = 0;
 
 #define FP_COUNT 10
 
-static void (*actions[FP_COUNT])(void); // function pointers hadsoimoismdcoisdjfaosmcoisdf
-static int (*sensors[FP_COUNT])(void);
+// static void (*actions[FP_COUNT])(void); // function pointers hadsoimoismdcoisdjfaosmcoisdf
+// static int (*sensors[FP_COUNT])(void);
+static fn_meta fn_table[FP_COUNT];
 
 // implement n-arity later
 // #define MAX_ARGS 4;
@@ -21,8 +22,8 @@ static int (*sensors[FP_COUNT])(void);
 
 // static void
 
-static void sheep_no_op() {}
-static int sheep_zero() {return 0;}
+static void no_op() {}
+static int zero() {return 0;}
 void blink(int times);
 void blink5();
 
@@ -44,7 +45,7 @@ enum Opcode {
     OP_POP,
     OP_EXEC, // always push the return value. user can throw it away
     OP_EXECIF,
-    OP_GETFP, // look up function pointer given index
+    // OP_GETFP, // obsolete // look up function pointer given index
     OP_LT,
     OP_EQ,
     OP_GT,
