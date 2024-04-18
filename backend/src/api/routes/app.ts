@@ -1,5 +1,5 @@
 import express from "express";
-import { variables, data, getTestData, getVariableNames, postString } from "../controllers/app.controller";
+import { variables, data, getTestData, getVariableNames, postString, registerDevice } from "../controllers/app.controller";
 
 
 const cors = require('cors');
@@ -19,6 +19,6 @@ router.use(cors());
 router.get("/data", getTestData);
 router.get('/variables', getVariableNames)
 router.post('/poststring', postString);
-
+router.post('/register-device', registerDevice);
 
 export { router as AppRouter };

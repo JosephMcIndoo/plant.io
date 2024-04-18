@@ -1,5 +1,6 @@
 import type { Request, Response } from "express";
-
+import sqlite3 from 'sqlite3';
+import {db} from '../../db/index';
 
 const variableList = ["time", "temperature", "humidity", "light", "moisture"];
 
@@ -86,3 +87,28 @@ export const postString = (req: Request, res: Response) => {
   // Here you can add the code to send the string to the embedded device
   res.status(200).send({ status: 'success', message: 'String received' });
 };
+
+export const registerDevice = (req: Request, res: Response) => {
+  var waterSensor = 'Not connected'
+  var tempSensor = 'Not connected'
+  var lightSensor = 'Not connected'
+  var humiditySensor = 'Not connected' 
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  const { sensor, actions } = req.body;
+  // expecting sensors to look like sensors: '1101' ([water, temp, light, humidity]) and actions to look like actions: 'a,b,c'
+  if (sensor.charAt(0) === '1') waterSensor = 'connected'
+  if (sensor.charAt(1) === '1') tempSensor = 'connected'
+  if (sensor.charAt(2) === '1') lightSensor = 'connected'
+  if (sensor.charAt(3) === '1') humiditySensor = 'connected'
+  console.log(`Received sensors: ${sensor}`);
+  console.log(`Received actions: ${actions}`);
+  // create unique id for the device specific to actions and sensors
+  var uid = Date.now().toString();
+
+  db.run(`INSERT INTO Devices
+  (uid, waterSensor, tempSensor, lightSensor, humiditySensor, actions) 
+  VALUES(?, ?, ?, ?, ?, ?)`, 
+  [uid, waterSensor, tempSensor, lightSensor, humiditySensor, actions]);
+  res.status(200).send({ status: 'success', message: 'Device registered', uid});
+
+}

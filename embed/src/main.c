@@ -16,6 +16,8 @@
 #include "lwip/err.h"
 #include "lwip/sys.h"
 #include "hal/gpio_types.h"
+#include "esp_http_client.h"
+#include "cJSON.h"
 
 #include <mqtt_client.h>
 
@@ -274,7 +276,7 @@ void adc_task(void *pvParameters) { // Recommended value of SAMPING_INTERVAL is 
             }
         }
         adc_reading /= NO_OF_SAMPLES; // Average of the collected converted reading 
-        //Convert adc_reading to voltage in mV
+        // Convert adc_reading to voltage in mV
         result = ((int)adc_reading / MAX_RAW) * 100;
         uint32_t voltage = esp_adc_cal_raw_to_voltage(adc_reading, adc_chars);        
         ESP_LOGI(READING, "Raw: %lu\t Voltage: %lumV Result: %0.1f%%", adc_reading, voltage, result);
@@ -286,6 +288,84 @@ void adc_task(void *pvParameters) { // Recommended value of SAMPING_INTERVAL is 
     }
 }
 
+#define SERVER_URL "http://localhost:3000/register-device" // placeholder of where server endpoint will be
+
+
+char register_device(void *pvParameters) {
+    // Given a set configuration of sensor
+    // Returns a array of binary which represents the configuration 
+    // [water, temp, light, humidity] => [1, 0, 1, 1] => 1011
+    // This is a placeholder function
+
+    // int arr[5];
+    // if (water == 1) {
+    //     arr[0] = 1;
+    // } else {
+    //     arr[0] = 0;
+    // }
+    // if (temp == 1) {
+    //     arr[1] = 1;
+    // } else {
+    //     arr[1] = 0;
+    
+    // } if (light == 1) {
+    //     arr[2] = 1;
+    // } else {
+    //     arr[2] = 0;
+    // } if (humidity == 1) {
+    //     arr[3] = 1;
+    // } else {
+    //     arr[3] = 0;
+    // }   
+    
+    // an implementation is set up to have an array that represents the configuration of the sensor
+    int* arr[5] = {1, 0, 1, 1};
+    int n = sizeof(arr) / sizeof(arr[0]);
+    char *str = malloc(n + 1);
+    for (int i = 0; i < n; i++) {
+        sprintf(&str[i], "%d", arr[i]);
+    }
+    // everything above is just showing an integer array drawn out into a string
+    str[n] = '\0';
+    
+
+    esp_http_client_config_t config = {
+        .url = SERVER_URL,
+    };
+    esp_http_client_handle_t client = esp_http_client_init(&config);
+    cJSON *root = cJSON_CreateObject();
+    cJSON_AddStringToObject(root, "sensors", str); 
+    cJSON_AddStringToObject(root, "actions", "a,b,c"); // for now, just a placeholder
+
+    char *post_data = cJSON_Print(root);
+
+    esp_http_client_set_method(client, HTTP_METHOD_POST);
+    esp_http_client_set_post_field(client, post_data, strlen(post_data));
+
+    char response[1024];
+    // send request
+    esp_err_t err = esp_http_client_perform(client);
+    if (err == ESP_OK) {
+        ESP_LOGI(TAG, "HTTP POST Status = %d, content_length = %d", esp_http_client_get_status_code(client), esp_http_client_get_content_length(client));            
+        int bytesRead = esp_http_client_read(client, response, sizeof(response) - 1);
+        if (bytesRead >= 0) {
+        response[bytesRead] = '\0'; // Null-terminate the string
+        ESP_LOGI(TAG, "HTTP Response: %s", response);
+    } else {
+        ESP_LOGE(TAG, "Failed to read HTTP response");
+    }
+
+    } else {
+        ESP_LOGE(TAG, "HTTP POST request failed: %s", esp_err_to_name(err));
+    }
+    char *result = (char *)pvParameters;
+    *result = response;
+    cJSON_Delete(root);
+    free(post_data);
+    free(response);
+    free(str);
+    esp_http_client_cleanup(client);
+}
 
 void app_main(void){
 
