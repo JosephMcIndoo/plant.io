@@ -213,16 +213,16 @@ void app_main(void)
     // task_params.pin = 34;
     // xTaskCreate(&adc_task, "adc_task", configMINIMAL_STACK_SIZE, NULL, 5, NULL);
     
-    //Initialize NVS
-    esp_err_t ret = nvs_flash_init();
-    if (ret == ESP_ERR_NVS_NO_FREE_PAGES || ret == ESP_ERR_NVS_NEW_VERSION_FOUND) {
-      ESP_ERROR_CHECK(nvs_flash_erase());
-      ret = nvs_flash_init();
-    }
-    ESP_ERROR_CHECK(ret);
+    // //Initialize NVS
+    // esp_err_t ret = nvs_flash_init();
+    // if (ret == ESP_ERR_NVS_NO_FREE_PAGES || ret == ESP_ERR_NVS_NEW_VERSION_FOUND) {
+    //   ESP_ERROR_CHECK(nvs_flash_erase());
+    //   ret = nvs_flash_init();
+    // }
+    // ESP_ERROR_CHECK(ret);
 
-    ESP_LOGI(TAG, "ESP_WIFI_MODE_STA");
-    wifi_init_sta();
+    // ESP_LOGI(TAG, "ESP_WIFI_MODE_STA");
+    // wifi_init_sta();
 
     gpio_config_t output_config = {
         .pin_bit_mask = (1ULL << GPIO_NUM_2),
@@ -254,18 +254,36 @@ void app_main(void)
     fn_table[2].arity = 1;
     fn_table[2].returns = 0;
 
+    // while (1) {
+    ESP_LOGE(TAG, "A");
+    blink5();
+    ESP_LOGE(TAG, "B");
+    fn_meta* meta = &fn_table[0];
+    // ESP_LOGE(TAG, "C");
+    void (*my_fun)(void) = meta->fn;
+    // ESP_LOGE(TAG, "D");
+    ESP_LOGE(TAG, "src: %p, cpy: %p", blink5, (&fn_table[0])->fn); // prefixing the funcs with & makes them differ
+    ESP_LOGE(TAG, "E");
+    typedef void (*noooo)();
+    ((noooo)(&fn_table[0])->fn)();
+    // (&fn_table[0]);
+    ESP_LOGE(TAG, "F");
+    // }
+
     while (1) {
         // char* bytecode = "a0 s0 v0 c= i "; // stack-based/reverse polish notation, subjec to change
         // // interpret(bytecode, strlen(bytecode));
         /*
         PUSH 1 // blink_5
-            01 00 00 00 01
+            01 00 00 00 00
         EXEC // execs blink_5
             03
         */
-        char* hexcode = "010000000103";
-        char bytes[64];
+        ESP_LOGE(TAG, "INTERPRETER LOOP");
+        char* hexcode = "010000000003";
+        byte_t bytes[64];
         int bc_length = hex_to_bytes(hexcode, bytes, 64);
         interpret(bytes, bc_length); // i am not looking forward to debugging this. well, that's what i'm about to do!
+        vTaskDelay(10000 / portTICK_PERIOD_MS);
     }
 }

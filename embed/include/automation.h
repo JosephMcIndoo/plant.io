@@ -1,10 +1,11 @@
 #ifndef AUTOMATION_H
 #define AUTOMATION_H
 // typedef unsigned long u32_t;
-typedef unsigned long value;
-// #define value u32_t
+typedef unsigned long value_t;
+typedef unsigned char byte_t;
+// #define value_t u32_t
 
-static value Stack[32];
+static value_t Stack[32];
 static int SP = 0;
 #define PUSH(val) Stack[SP++]=val // TODO: ensure index safety
 #define POP() Stack[--SP]
@@ -13,6 +14,11 @@ static int SP = 0;
 
 // static void (*actions[FP_COUNT])(void); // function pointers hadsoimoismdcoisdjfaosmcoisdf
 // static int (*sensors[FP_COUNT])(void);
+typedef struct {
+    void* fn;
+    int arity;
+    int returns; // bool
+} fn_meta;
 static fn_meta fn_table[FP_COUNT];
 
 // implement n-arity later
@@ -27,16 +33,9 @@ static int zero() {return 0;}
 void blink(int times);
 void blink5();
 
-typedef struct {
-    void* fn;
-    int arity;
-    int returns; // bool
-} fn_meta;
-
 void function_pointer_init();
-
-// given a stream of bytes, attempt to interpret and execute
-void interpret(const char* bytecode, int bc_length);
+int hex_to_bytes(const char* hex_string, byte_t* bytes, int max_bytes);
+void interpret(const byte_t* bytecode, int bc_length); // given a stream of bytes, attempt to interpret and execute
 int read_15();
 
 enum Opcode {
