@@ -22,6 +22,8 @@
 #include <stdlib.h>
 #include <ctype.h>
 
+fn_meta fn_table[FP_COUNT];
+
 // blinks led `count` many times
 // requires that gpio stuff is all set up
 void blink(int count) {
@@ -85,7 +87,12 @@ void interpret(const byte_t* bytecode, int bc_length) {
                 }; // otherwise flow down
             case OP_EXEC:
                 ESP_LOGE(TAG, "execing");
-                ESP_LOGE(TAG, "src: %p, cpy: %p", blink5, ((&fn_table[0]))->fn); // prefixing the funcs with & makes them differ
+                ESP_LOGE(TAG, "line 88 src: %p, cpy: %p", blink5, (&fn_table[0])->fn); // prefixing the funcs with & makes them differ
+                ESP_LOGE(TAG, "cpy_addr: %p", &(&fn_table[0])->fn);
+                ESP_LOGE(TAG, "arr_addr: %p", fn_table);
+                ESP_LOGE(TAG, "meta_addr: %p", (&fn_table[0]));
+                ESP_LOGE(TAG, "line 88 src: %p, simpler_cpy: %p", blink5, fn_table[0].fn);
+                ESP_LOGE(TAG, "no_op: %p", no_op); // prefixing the funcs with & makes them differ
                 value_t ligma = POP();
                 typedef void (*nooo)();
                 ((nooo)((&fn_table[0])->fn))();
@@ -195,7 +202,7 @@ int hex_to_bytes(const char* hex_string, byte_t* bytes, int max_bytes) {
 void function_pointer_init() {
     for (int i=0; i<FP_COUNT; ++i) {
         // fn_table[i] = {.fn = &no_op, .arity = 0, .returns = 0};
-        fn_table[i].fn = &no_op;
+        fn_table[i].fn = NULL; // better to segfault than to silently fail
         fn_table[i].arity = 0;
         fn_table[i].returns = 0;
     }

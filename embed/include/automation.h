@@ -5,7 +5,7 @@ typedef unsigned long value_t;
 typedef unsigned char byte_t;
 // #define value_t u32_t
 
-static value_t Stack[32];
+static value_t Stack[32]; // TODO: is static scope actually correct here?
 static int SP = 0;
 #define PUSH(val) Stack[SP++]=val // TODO: ensure index safety
 #define POP() Stack[--SP]
@@ -19,7 +19,8 @@ typedef struct {
     int arity;
     int returns; // bool
 } fn_meta;
-static fn_meta fn_table[FP_COUNT];
+// extern fn_meta fn_table[FP_COUNT];
+extern fn_meta fn_table[];
 
 // implement n-arity later
 // #define MAX_ARGS 4;

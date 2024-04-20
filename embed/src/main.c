@@ -243,7 +243,7 @@ void app_main(void)
     gpio_config(&input_config);
 
     // initialize function pointers for automations
-    function_pointer_init();
+    // function_pointer_init();
     fn_table[0].fn = &blink5;
     fn_table[0].arity = 0;
     fn_table[0].returns = 0;
@@ -262,7 +262,11 @@ void app_main(void)
     // ESP_LOGE(TAG, "C");
     void (*my_fun)(void) = meta->fn;
     // ESP_LOGE(TAG, "D");
-    ESP_LOGE(TAG, "src: %p, cpy: %p", blink5, (&fn_table[0])->fn); // prefixing the funcs with & makes them differ
+    ESP_LOGE(TAG, "line 265 src: %p, cpy: %p", blink5, (&fn_table[0])->fn); // prefixing the funcs with & makes them differ
+    ESP_LOGE(TAG, "cpy_addr: %p", &(&fn_table[0])->fn);
+    ESP_LOGE(TAG, "arr_addr: %p", fn_table);
+    ESP_LOGE(TAG, "meta_addr: %p", (&fn_table[0]));
+    ESP_LOGE(TAG, "line 265 src: %p, simpler_cpy: %p", blink5, fn_table[0].fn);
     ESP_LOGE(TAG, "E");
     typedef void (*noooo)();
     ((noooo)(&fn_table[0])->fn)();
@@ -284,6 +288,6 @@ void app_main(void)
         byte_t bytes[64];
         int bc_length = hex_to_bytes(hexcode, bytes, 64);
         interpret(bytes, bc_length); // i am not looking forward to debugging this. well, that's what i'm about to do!
-        vTaskDelay(10000 / portTICK_PERIOD_MS);
+        // vTaskDelay(10000 / portTICK_PERIOD_MS);
     }
 }
