@@ -243,7 +243,7 @@ void app_main(void)
     gpio_config(&input_config);
 
     // initialize function pointers for automations
-    // function_pointer_init();
+    function_pointer_init();
     fn_table[0].fn = &blink5;
     fn_table[0].arity = 0;
     fn_table[0].returns = 0;
@@ -254,40 +254,28 @@ void app_main(void)
     fn_table[2].arity = 1;
     fn_table[2].returns = 0;
 
-    // while (1) {
-    ESP_LOGE(TAG, "A");
-    blink5();
-    ESP_LOGE(TAG, "B");
-    fn_meta* meta = &fn_table[0];
-    // ESP_LOGE(TAG, "C");
-    void (*my_fun)(void) = meta->fn;
-    // ESP_LOGE(TAG, "D");
-    ESP_LOGE(TAG, "line 265 src: %p, cpy: %p", blink5, (&fn_table[0])->fn); // prefixing the funcs with & makes them differ
-    ESP_LOGE(TAG, "cpy_addr: %p", &(&fn_table[0])->fn);
-    ESP_LOGE(TAG, "arr_addr: %p", fn_table);
-    ESP_LOGE(TAG, "meta_addr: %p", (&fn_table[0]));
-    ESP_LOGE(TAG, "line 265 src: %p, simpler_cpy: %p", blink5, fn_table[0].fn);
-    ESP_LOGE(TAG, "E");
-    typedef void (*noooo)();
-    ((noooo)(&fn_table[0])->fn)();
-    // (&fn_table[0]);
-    ESP_LOGE(TAG, "F");
-    // }
-
     while (1) {
-        // char* bytecode = "a0 s0 v0 c= i "; // stack-based/reverse polish notation, subjec to change
-        // // interpret(bytecode, strlen(bytecode));
-        /*
-        PUSH 1 // blink_5
-            01 00 00 00 00
-        EXEC // execs blink_5
-            03
-        */
-        ESP_LOGE(TAG, "INTERPRETER LOOP");
-        char* hexcode = "010000000003";
+        ESP_LOGI(TAG, "INTERPRETER LOOP");
+        // char* hexcode = "010000000003"; // blink5()
+        // char* hexcode = "010000000a010000000203"; // blink(10)
         byte_t bytes[64];
+        char* hexcode = 
+        // PUSH 10
+        "010000000a"
+        // PUSH 2 // blink(int)
+        "0100000002"
+        // PUSH 1
+        "0100000001"
+        // PUSH 1 // read_15()
+        "0100000001"
+        // EXEC
+        "03"
+        // OP_SUB
+        "0c"
+        // OP_EXECIF
+        "04";
         int bc_length = hex_to_bytes(hexcode, bytes, 64);
-        interpret(bytes, bc_length); // i am not looking forward to debugging this. well, that's what i'm about to do!
-        // vTaskDelay(10000 / portTICK_PERIOD_MS);
+        interpret(bytes, bc_length);
+        vTaskDelay(1000 / portTICK_PERIOD_MS); // delay for illustrative purposes only
     }
 }

@@ -22,23 +22,29 @@
 #include <stdlib.h>
 #include <ctype.h>
 
+value_t Stack[STACK_SIZE];
+int SP;
 fn_meta fn_table[FP_COUNT];
 
 // blinks led `count` many times
 // requires that gpio stuff is all set up
 void blink(int count) {
-    ESP_LOGE("blink", "blinking %d", count);
+    ESP_LOGI("blink", "blinking %d", count);
     for (int i=0; i<count; ++i) {
         gpio_set_level(GPIO_NUM_2, 1);
-        vTaskDelay(125 / portTICK_PERIOD_MS);
+        vTaskDelay(50 / portTICK_PERIOD_MS);
         gpio_set_level(GPIO_NUM_2, 0);
-        vTaskDelay(125 / portTICK_PERIOD_MS);
+        vTaskDelay(200 / portTICK_PERIOD_MS);
     }
 }
 void blink5() {blink(5);}
 
+// int read(int pin_num) {
+// } // implement later
 int read_15() {
-    return gpio_get_level(GPIO_NUM_15);
+    int val = gpio_get_level(GPIO_NUM_15);
+    ESP_LOGI("read_15", "got value %d", val);
+    return val;
 }
 
 // i: if
@@ -53,12 +59,11 @@ int read_15() {
 //  : null/empty/ignore
 
 void interpret(const byte_t* bytecode, int bc_length) {
-    char* TAG = "auto";
-    // received correct bytecode?
-    for (int i = 0; i < bc_length; ++i) {
-        ESP_LOGE(TAG, "i:%d, %x LOOP", i, bytecode[i]&0xff);
-    }
-
+    char* TAG = "interpret";
+    // // received correct bytecode?
+    // for (int i = 0; i < bc_length; ++i) {
+    //     ESP_LOGD(TAG, "i:%d, %x LOOP", i, bytecode[i]&0xff);
+    // }
 
     byte_t* curr = bytecode;
     byte_t* end = bytecode + bc_length*sizeof(byte_t);
@@ -72,9 +77,9 @@ void interpret(const byte_t* bytecode, int bc_length) {
                 value_t val = 0;
                 for (int i=0; i<4; ++i) {
                     val <<= 8;
-                    val += (value_t) *(++curr); // darn i hope this works
+                    val += (value_t) *(++curr);
                 }
-                ESP_LOGE(TAG, "pushing val %lu at SP %d", val, SP);
+                ESP_LOGI(TAG, "pushing val %lu at SP %d", val, SP);
                 PUSH(val);
                 break;
             case OP_POP: arg1 = POP(); break; // assignment to arg1 is soleley to appease compiler
@@ -84,48 +89,35 @@ void interpret(const byte_t* bytecode, int bc_length) {
                     for (int i = 0; i < meta->arity; ++i) {
                         arg1 = POP(); // the atmosphere is nature's bin
                     }
+                    break;
                 }; // otherwise flow down
             case OP_EXEC:
-                ESP_LOGE(TAG, "execing");
-                ESP_LOGE(TAG, "line 88 src: %p, cpy: %p", blink5, (&fn_table[0])->fn); // prefixing the funcs with & makes them differ
-                ESP_LOGE(TAG, "cpy_addr: %p", &(&fn_table[0])->fn);
-                ESP_LOGE(TAG, "arr_addr: %p", fn_table);
-                ESP_LOGE(TAG, "meta_addr: %p", (&fn_table[0]));
-                ESP_LOGE(TAG, "line 88 src: %p, simpler_cpy: %p", blink5, fn_table[0].fn);
-                ESP_LOGE(TAG, "no_op: %p", no_op); // prefixing the funcs with & makes them differ
-                value_t ligma = POP();
-                typedef void (*nooo)();
-                ((nooo)((&fn_table[0])->fn))();
-                // ESP_LOGE(TAG, "execing");
-                // fn_meta* meta = &fn_table[0];
-                // // fn_meta mettta = fn_table[0];
-                // value_t ligma = POP();
-                // ESP_LOGE(TAG, "src: %p, cpy: %p", blink5, meta->fn);
-                // ESP_LOGE(TAG, "%d, %d", meta->arity, meta->returns);
-                // value_t ret = 0;
-                // if (meta->arity == 0) {
-                //     value_t (*fun)() = meta->fn;
-                //     ret = fun();
-                // } else if (meta->arity == 1) {
-                //     value_t (*fun)(value_t) = meta->fn; 
-                //     arg1 = POP();
-                //     ret = fun(arg1);
-                // } else if (meta->arity == 2) {
-                //     value_t (*fun)(value_t, value_t) = meta->fn;
-                //     arg2 = POP(); arg1 = POP();
-                //     ret = fun(arg1, arg2);
-                // } else if (meta->arity == 3) {
-                //     value_t (*fun)(value_t, value_t, value_t) = meta->fn;
-                //     arg3 = POP(); arg2 = POP(); arg1 = POP();
-                //     ret = fun(arg1, arg2, arg3);
-                // } else if (meta->arity == 4) {
-                //     value_t (*fun)(value_t, value_t, value_t, value_t) = meta->fn;
-                //     arg4 = POP(); arg3 = POP(); arg2 = POP(); arg1 = POP();
-                //     ret = fun(arg1, arg2, arg3, arg4);
-                // } // TODO: error handle if arity out of range?
-                // if (meta->returns) {
-                //     PUSH(ret);
-                // }
+                ESP_LOGI(TAG, "execing");
+                fn_meta* meta = &fn_table[POP()];
+                value_t ret = 0;
+                if (meta->arity == 0) {
+                    value_t (*fun)() = meta->fn;
+                    ret = fun();
+                } else if (meta->arity == 1) {
+                    value_t (*fun)(value_t) = meta->fn; 
+                    arg1 = POP();
+                    ret = fun(arg1);
+                } else if (meta->arity == 2) {
+                    value_t (*fun)(value_t, value_t) = meta->fn;
+                    arg2 = POP(); arg1 = POP();
+                    ret = fun(arg1, arg2);
+                } else if (meta->arity == 3) {
+                    value_t (*fun)(value_t, value_t, value_t) = meta->fn;
+                    arg3 = POP(); arg2 = POP(); arg1 = POP();
+                    ret = fun(arg1, arg2, arg3);
+                } else if (meta->arity == 4) {
+                    value_t (*fun)(value_t, value_t, value_t, value_t) = meta->fn;
+                    arg4 = POP(); arg3 = POP(); arg2 = POP(); arg1 = POP();
+                    ret = fun(arg1, arg2, arg3, arg4);
+                } // TODO: error handle if arity out of range?
+                if (meta->returns) {
+                    PUSH(ret);
+                }
                 break;
             case OP_LT:
                 arg2 = POP(); arg1 = POP();
@@ -169,6 +161,9 @@ void interpret(const byte_t* bytecode, int bc_length) {
                 PUSH(arg1 % arg2);
                 break;
         }
+    }
+    if (SP != 0) {
+        ESP_LOGW(TAG, "SP = %d != 0 at end of script", SP);
     }
 }
 
