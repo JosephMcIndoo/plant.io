@@ -244,15 +244,9 @@ void app_main(void)
 
     // initialize function pointers for automations
     function_pointer_init();
-    fn_table[0].fn = &blink5;
-    fn_table[0].arity = 0;
-    fn_table[0].returns = 0;
-    fn_table[1].fn = &read_15;
-    fn_table[1].arity = 0;
-    fn_table[1].returns = 1;
-    fn_table[2].fn = &blink;
-    fn_table[2].arity = 1;
-    fn_table[2].returns = 0;
+    fn_table[0] = (fn_meta){.fn = &blink5, .arity = 0, .returns = 0};
+    fn_table[1] = (fn_meta){.fn = &read_15, .arity = 0, .returns = 1};
+    fn_table[2] = (fn_meta){.fn = &blink, .arity = 1, .returns = 0};
 
     while (1) {
         ESP_LOGI(TAG, "INTERPRETER LOOP");

@@ -64,7 +64,7 @@ Do we need two stacks/a queue? (nah, we'll just keep this pushdown for now. can 
 Each script is an isolated instance. This helps us keep a little state isolated.
 
  
-
-
-
-
+Future extensions:
+technically, driver functions allow us to add as much functionality as we would like.
+I think we could make things turing-complete by adding a 2nd stack, and just having a driver function called stack_swap()
+We could even create driver functions that e.g. fork execution or something crazy like that.
