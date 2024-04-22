@@ -1,5 +1,5 @@
 # Welcome to Ember
-**Ember** is the small intepreted stack-based language that I'm writing for plant.io. It's fairly new still, so I may make some breaking changes in the future, but this is how it works for the time being.
+**Ember** is the small intepreted stack-based language that [I'm](https://github.com/superstealthysheep) writing for plant.io. It's fairly new still, so I may make some breaking changes in the future, but this is how it works for the time being.
 
 You supply Ember with a table of "hardware driver" functions (written in C) and an array of Ember bytecode ("charcode"), and together this specifies an Ember program.
 
@@ -79,7 +79,7 @@ Stack
 (Additional note: there is a `OP_POP` operation (opcode `0x02`) that discards items from the stack, but we have no need for it at the moment.)
 
 ### The `OP_EXEC` operation
-Using the `OP_EXEC` operation, we can call c functions from within Ember. For our purposes, this is useful because it allows us to read from sensors or trigger actuators.
+Using the `OP_EXEC` operation, we can call C functions from within Ember. For our purposes, this is useful because it allows us to read from sensors or trigger actuators.
 
 For instance, the driver function `void blink(int count)` blinks the LED on the ESP32 `count` times. Another example is `int read_15()`, which returns the current state of GPIO pin 15 (`1` if it's high, `0` if it's low).
 
@@ -94,7 +94,7 @@ fn_table[2] = (fn_meta){.fn = &blink, .arity = 1, .returns = 0};
 What does the `OP_EXEC` operator do?
 1. The `OP_EXEC` operator first pops a number off the stack. This number determines what function is to be executed. 
 2. It then pops values off the stack to fill the arguments of the function (in reverse order). 
-3. It executes the c function
+3. It executes the C function
 4. If the function returns a value, the return value is pushed to the stack
 
 Returning to our example, recall that our stack looks like
@@ -243,6 +243,16 @@ Stack
 -
 ```
 
+### Congratulations!
+This concludes my introduction to Ember. To see the full list of opcodes, look in `embed/include/automation.h`. Otherwise feel free to poke around in `embed/src/automation/automation.c` if you want to see how this is implemented. 
+
+The script demonstrated here is currently (at time of writing) residing in `embed/src/main.c`, so if you flash it to your ESP32, you should be able to watch it run. To lower pin 15 and trigger the blinking light, use a piece of metal to bridge pins `D15` and `GND`. (I chose pin 15 so that it'd be easy to bridge to ground even without wire/any fancy tools.)
+
 ### Extra: additional discussion of driver functions
 - Types
+
 The Ember stack holds 4 bytes of arbitrary binary values. Behind the scenes, the values are manipulated as 4-byte unsigned ints, but this should pose no issue if your function's arguments/return types fit within 4 bytes.
+
+- Arity
+
+Presently, the Ember interpreter only supports functions with up to 4 arguments. This is not due to technical limitations, but it's just because adding different arities requires some (afaik unavoidable) copy/paste programming. 4 is reasonable for now, but if it turns out we need more arguments, the update is trivial to make.
